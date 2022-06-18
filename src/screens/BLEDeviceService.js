@@ -18,7 +18,7 @@ import {
 
 import BleManager from "react-native-ble-manager";
 import { ColorPicker, toHsv, fromHsv, } from 'react-native-color-picker';
-import { hexToRgb, } from '../Utils/Utils';
+import { getEffectRGBData, getEffectsData, hexToRgb, NO_EFFECTS, } from '../Utils/Utils';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
@@ -46,8 +46,16 @@ const BLEDeviceService = (props) => {
     const [selectedColorFromPicker, setPickerColor] = useState("#FF0000");
     const [isEnabled, setEnabled] = useState(true)
 
+    const [isEffectRunning, setEffectRunning] = useState(false);
+
     const serviceUUIDForWriteBlubColor = "ffb0"
     const characteristicUUIDForWriteBlubColor = "ffb2"
+
+    const LED_RW_R_ARRAY_CHARACTERISTIC_UUID = "ffb9";
+    const LED_RW_G_ARRAY_CHARACTERISTIC_UUID = "ffba";
+    const LED_RW_B_ARRAY_CHARACTERISTIC_UUID = "ffbb";
+    const LED_RW_CHANGE_MODE_CHARACTERISTIC_UUID = "ffb1";
+
     const characteristicUUIDForChangeBlubName = "ffb7"
     const fullBrightNessHexValue = 49; // 1
     const zeroBrightNessHexValue = 48; // 0
@@ -61,10 +69,13 @@ const BLEDeviceService = (props) => {
         //* Get the All services from Periheral
         getAllServiceForBLEDevice()
 
+
         return (() => {
             ble3.remove()
             ble4.remove()
         })
+
+
 
     }, []);
 
@@ -161,11 +172,11 @@ const BLEDeviceService = (props) => {
 
             /**
              *//* Read operation to get blub name
-    */
+*/
             BleManager.read(item.id, serviceUUIDForWriteBlubColor, characteristicUUIDForChangeBlubName).then((characteristic) => {
                 /**
                  *//* From library we are getting byte array so we need to convert into Human readable format.
-         */
+*/
                 const bytesString = String.fromCharCode(...characteristic)
                 setBlubName(bytesString)
             }).catch((error) => {
@@ -195,6 +206,7 @@ const BLEDeviceService = (props) => {
     }
 
     const renderColorItem = ({ item, index }) => {
+        let isRomanceEffect = colorAndShadeList[currentIndex]?.isRomanceEffect ? true : false;
         return (
             <TouchableOpacity style={{
                 borderWidth: 0.5,
@@ -205,7 +217,12 @@ const BLEDeviceService = (props) => {
                 marginVertical: 5
             }}
                 onPress={() => {
-                    onColorPicked(item.backgroundColor)
+                    if (isRomanceEffect) {
+                        onRomanceEffectClick(item)
+                    }
+                    else {
+                        onColorPicked(item.backgroundColor)
+                    }
                 }}
             >
                 <View style={{
@@ -365,6 +382,121 @@ const BLEDeviceService = (props) => {
         }
         setEnabled(value)
     }
+    // 48-0
+    // 49-1
+    // 50-2
+    // 51-3
+    // 52-4
+    // 53-5
+    // 54-6
+    // 55-7
+    // effectData[0] = (byte) 0x01;
+    // effectData[1] = (byte) 0x00;
+    // effectData[2] = (byte) 0x02;
+    // effectData[3] = (byte) 0x03;
+    //[B@7092c97
+
+    // case Constants.NO_EFFECTS:
+    //     effectData[0] = (byte) 0x00;
+    //     effectData[1] = (byte) 0x00;
+    //     effectData[2] = (byte) 0x00;
+    //     effectData[3] = (byte) 0x1E;
+
+    //     2022-06-18 17:47:13.506 19377-20588/? I/Util: getEffectsData effectName: No Effects
+    // 2022-06-18 17:47:13.506 19377-20588/? I/MansaaBulbDevice: effectName: No Effects, setByteEffect: [B@8b48dc5
+    // 2022-06-18 17:47:14.336 19377-20588/? I/MansaaBulbDevice: effectName: Cobalt, setByteEffect: [B@3895c6c
+
+    const getValue = (list = []) => {
+        let newlist = list.map(obj => parseInt(obj, 16));
+        return newlist
+    }
+
+    const onPressStrobe = () => {
+        let item = route.params && route.params.peripheral ? route.params.peripheral : null;
+        console.log("Item ---->", item);
+        console.log("getValue ---->", getValue(['0x01', '0x00', '0x02', ' 0x10']));
+
+        let yourNumber = parseInt('0x11', 16);
+        console.log("yourNumber===>", yourNumber);
+
+        try {
+            BleManager.write(item.id,
+                serviceUUIDForWriteBlubColor,
+                'ffb1',
+                getValue([1, 0, 3, 2]),//[49, 48, 50, 51]	// [48, 0, 0, 0]	//	tempBuffer
+            ).then((response) => {
+                console.log("response---strobe>", response);
+
+            }).catch(error => {
+                console.log("Error--->", error);
+                ToastAndroid.show(JSON.stringify(error), ToastAndroid.SHORT)
+            })
+        } catch (error) {
+            console.log("Error---123123123-<", error);
+        }
+    }
+
+    const onRomanceEffectClick = (data) => {
+        let item = route.params && route.params.peripheral ? route.params.peripheral : null;
+        console.log("Effect Name ---->", data?.name);
+
+        let rgbData = getEffectRGBData(data.name)
+        console.log("rgbData : ", rgbData);
+
+        let effectData = getEffectsData(data.name)
+        console.log("effectData : ", effectData);
+
+        let noEffectData = getEffectsData(NO_EFFECTS);
+        console.log("noEffectData : ", noEffectData);
+
+        if (rgbData?.length) {
+            BleManager.write(item.id,
+                serviceUUIDForWriteBlubColor,
+                LED_RW_CHANGE_MODE_CHARACTERISTIC_UUID,
+                noEffectData
+            ).then((res) => {
+                console.log("res----NO_EFFECTS<", res);
+                setTimeout(() => {
+                    BleManager.write(item.id,
+                        serviceUUIDForWriteBlubColor,
+                        LED_RW_R_ARRAY_CHARACTERISTIC_UUID,
+                        rgbData[0]).then((res) => {
+                            console.log("res---LED_RW_R_ARRAY_CHARACTERISTIC_UUID-<", res);
+                            BleManager.write(item.id,
+                                serviceUUIDForWriteBlubColor,
+                                LED_RW_G_ARRAY_CHARACTERISTIC_UUID,
+                                rgbData[1]).then((res) => {
+                                    console.log("res---LED_RW_G_ARRAY_CHARACTERISTIC_UUID-<", res);
+                                    BleManager.write(item.id,
+                                        serviceUUIDForWriteBlubColor,
+                                        LED_RW_B_ARRAY_CHARACTERISTIC_UUID,
+                                        rgbData[2]).then((res) => {
+                                            console.log("res---LED_RW_B_ARRAY_CHARACTERISTIC_UUID-<", res);
+                                            BleManager.write(item.id,
+                                                serviceUUIDForWriteBlubColor,
+                                                LED_RW_CHANGE_MODE_CHARACTERISTIC_UUID,
+                                                effectData).then((res) => {
+                                                    console.log("res---LED_RW_CHANGE_MODE_CHARACTERISTIC_UUID-<", res);
+                                                }).catch((error) => {
+                                                    console.log("Error---1234-<", error);
+                                                })
+                                        }).catch((error) => {
+                                            console.log("Error---1234-<", error);
+                                        })
+
+                                }).catch((error) => {
+                                    console.log("Error---58585-<", error);
+                                })
+
+                        }).catch((error) => {
+                            console.log("Error---4848-<", error);
+                        })
+                }, 500);
+            }).catch((error) => {
+                console.log("Error---no effect-<", error);
+            })
+        }
+    }
 
     return (
         <View style={styles.container}>
@@ -378,6 +510,11 @@ const BLEDeviceService = (props) => {
                 horizontal
                 contentContainerStyle={{ paddingTop: 20, }}
             >
+                {/* {
+                    <TouchableOpacity onPress={onPressStrobe}>
+                        <Text style={{ color: "black" }}>{"Strobe Effect"}</Text>
+                    </TouchableOpacity>
+                } */}
                 {colorAndShadeList.map((item, index) => renderColorTitleItem(item, index))}
             </ScrollView>
 
@@ -385,7 +522,7 @@ const BLEDeviceService = (props) => {
                 data={colorAndShadeList[currentIndex].colorList}
                 extraData={randomNumber}
                 renderItem={renderColorItem}
-                contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 10, height: "60%" }}
+                contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 10, }}
             /> :
                 <View style={{ height: "70%", marginBottom: 30 }}>
                     <ColorPicker

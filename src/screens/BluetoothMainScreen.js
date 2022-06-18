@@ -162,7 +162,7 @@ const BletoothMainScreen = (props) => {
 
     /**
      *//* Enable the Bluetooth Permission
- */
+*/
     const enableBluetoothInDevice = () => {
         BleManager.enableBluetooth()
             .then(() => {
@@ -262,6 +262,7 @@ const BletoothMainScreen = (props) => {
      * //* Render single item of list of connected BLE Periphrals
      */
     const renderBlubList = ({ item, index }) => {
+        let isDevice = item.id == "8C:8B:83:47:0F:BC" ? true : false
         return (
             <TouchableOpacity style={{
                 marginHorizontal: 20, flexDirection: "row",
@@ -269,7 +270,8 @@ const BletoothMainScreen = (props) => {
                 justifyContent: "space-between",
                 borderBottomWidth: 1,
                 borderColor: "gray",
-                paddingBottom: 5
+                paddingBottom: 5,
+                backgroundColor: isDevice ? "gray" : "white"
             }}
                 onPress={() => onPressSingleBlub(item, index)}
             >

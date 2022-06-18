@@ -3,9 +3,8 @@ import {
   View, StyleSheet, StatusBar, LogBox
 } from 'react-native';
 import AppContainer from './src/navigator/AppNavigator';
-
+LogBox.ignoreAllLogs(true)
 export default function RNApp() {
-
 
   return (
     <View style={styles.container}>

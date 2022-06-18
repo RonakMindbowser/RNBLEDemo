@@ -187,3 +187,329 @@ export function HSLToHex(h, s, l) {
 
     return "#" + r + g + b;
 }
+
+export const NO_EFFECTS = "No Effects";
+
+export const DIM_ROMANCE = "Dim Romance";
+export const DIM_SLOW_MUSIC = "Dim Slow Music";
+export const POLICE = "Police";
+export const FIRE_CRACKER = "Fire Cracker";
+
+export const ALIENS = "Alien";
+export const MAGIC = "Magic";
+export const FANTASY = "Fantasy";
+export const LETS_DANCE = "Let's Dance";
+
+export const getEffectRGBData = (effectName) => {
+    let list = [];
+
+    let rData = [];
+    let gData = [];
+    let bData = [];
+
+    switch (effectName) {
+        case DIM_SLOW_MUSIC:
+            rData[0] = 0x40;
+            rData[1] = 0x40;
+            rData[2] = 0x15;
+            rData[3] = 0x00;
+            rData[4] = 0x02;
+            rData[5] = 0x32;
+            rData[6] = 0x35;
+            rData[7] = 0x40;
+
+            gData[0] = 0x00;
+            gData[1] = 0x00;
+            gData[2] = 0x00;
+            gData[3] = 0x00;
+            gData[4] = 0x00;
+            gData[5] = 0x00;
+            gData[6] = 0x00;
+            gData[7] = 0x00;
+
+            bData[0] = 0x00;
+            bData[1] = 0x00;
+            bData[2] = 0x00;
+            bData[3] = 0x17;
+            bData[4] = 0x40;
+            bData[5] = 0x40;
+            bData[6] = 0x00;
+            bData[7] = 0x32;
+            break;
+
+        case DIM_ROMANCE:
+            rData[0] = 0x40;
+            rData[1] = 0x26;
+            rData[2] = 0x1A;
+            rData[3] = 0x40;
+            rData[4] = 0x26;
+            rData[5] = 0x40;
+            rData[6] = 0x26;
+            rData[7] = 0x1A;
+
+            gData[0] = 0x00;
+            gData[1] = 0x00;
+            gData[2] = 0x00;
+            gData[3] = 0x00;
+            gData[4] = 0x00;
+            gData[5] = 0x00;
+            gData[6] = 0x00;
+            gData[7] = 0x00;
+
+            bData[0] = 0x00;
+            bData[1] = 0x1B;
+            bData[2] = 0x00;
+            bData[3] = 0x00;
+            bData[4] = 0x1B;
+            bData[5] = 0x00;
+            bData[6] = 0x1B;
+            bData[7] = 0x00;
+            break;
+
+        case POLICE:
+            rData[0] = 0xFF;
+            rData[1] = 0x2B;
+            rData[2] = 0xFF;
+            rData[3] = 0x2B;
+            rData[4] = 0xFF;
+            rData[5] = 0x2B;
+            rData[6] = 0xFF;
+            rData[7] = 0x2B;
+
+            gData[0] = 0x00;
+            gData[1] = 0x00;
+            gData[2] = 0x00;
+            gData[3] = 0x00;
+            gData[4] = 0x00;
+            gData[5] = 0x00;
+            gData[6] = 0x00;
+            gData[7] = 0x00;
+
+            bData[0] = 0x00;
+            bData[1] = 0xFF;
+            bData[2] = 0x00;
+            bData[3] = 0xFF;
+            bData[4] = 0x00;
+            bData[5] = 0xFF;
+            bData[6] = 0x00;
+            bData[7] = 0xFF;
+            break;
+
+        case FIRE_CRACKER:
+            rData[0] = 0x80;
+            rData[1] = 0xFF;
+            rData[2] = 0xCC;
+            rData[3] = 0xFF;
+            rData[4] = 0x80;
+            rData[5] = 0xFF;
+            rData[6] = 0xCC;
+            rData[7] = 0xFF;
+
+            gData[0] = 0x80;
+            gData[1] = 0xCE;
+            gData[2] = 0x00;
+            gData[3] = 0x81;
+            gData[4] = 0x80;
+            gData[5] = 0xCE;
+            gData[6] = 0x00;
+            gData[7] = 0x81;
+
+            bData[0] = 0x80;
+            bData[1] = 0x00;
+            bData[2] = 0x00;
+            bData[3] = 0x00;
+            bData[4] = 0x80;
+            bData[5] = 0x00;
+            bData[6] = 0x00;
+            bData[7] = 0x00;
+            break;
+
+        case ALIENS:
+            rData[0] = 0x00;
+            rData[1] = 0x00;
+            rData[2] = 0x00;
+            rData[3] = 0x00;
+            rData[4] = 0x00;
+            rData[5] = 0x00;
+            rData[6] = 0x00;
+            rData[7] = 0x00;
+
+            gData[0] = 0xFF;
+            gData[1] = 0xCC;
+            gData[2] = 0xA6;
+            gData[3] = 0x80;
+            gData[4] = 0x66;
+            gData[5] = 0x4D;
+            gData[6] = 0x33;
+            gData[7] = 0x1A;
+
+            bData[0] = 0x00;
+            bData[1] = 0x00;
+            bData[2] = 0x00;
+            bData[3] = 0x00;
+            bData[4] = 0x00;
+            bData[5] = 0x00;
+            bData[6] = 0x00;
+            bData[7] = 0x00;
+            break;
+
+        case FANTASY:
+            rData[0] = 0x00;
+            rData[1] = 0x00;
+            rData[2] = 0x00;
+            rData[3] = 0x00;
+            rData[4] = 0x00;
+            rData[5] = 0x00;
+            rData[6] = 0x00;
+            rData[7] = 0x00;
+
+            gData[0] = 0x00;
+            gData[1] = 0x00;
+            gData[2] = 0x00;
+            gData[3] = 0x00;
+            gData[4] = 0x00;
+            gData[5] = 0x00;
+            gData[6] = 0x00;
+            gData[7] = 0x00;
+
+            bData[0] = 0x1A;
+            bData[1] = 0x33;
+            bData[2] = 0x4D;
+            bData[3] = 0x66;
+            bData[4] = 0x80;
+            bData[5] = 0xA6;
+            bData[6] = 0xCC;
+            bData[7] = 0xFF;
+            break;
+
+        case MAGIC:
+            rData[0] = 0x00;
+            rData[1] = 0x80;
+            rData[2] = 0x00;
+            rData[3] = 0x66;
+            rData[4] = 0x00;
+            rData[5] = 0x33;
+            rData[6] = 0x00;
+            rData[7] = 0x1A;
+
+            gData[0] = 0x00;
+            gData[1] = 0x80;
+            gData[2] = 0x00;
+            gData[3] = 0x66;
+            gData[4] = 0x00;
+            gData[5] = 0x33;
+            gData[6] = 0x00;
+            gData[7] = 0x1A;
+
+            bData[0] = 0x33;
+            bData[1] = 0x80;
+            bData[2] = 0x66;
+            bData[3] = 0x66;
+            bData[4] = 0x99;
+            bData[5] = 0x33;
+            bData[6] = 0xCC;
+            bData[7] = 0x1A;
+            break;
+
+        case LETS_DANCE:
+            rData[0] = 0xFF;
+            rData[1] = 0x00;
+            rData[2] = 0x00;
+            rData[3] = 0xFF;
+            rData[4] = 0xFF;
+            rData[5] = 0x00;
+            rData[6] = 0x00;
+            rData[7] = 0xFF;
+
+            gData[0] = 0x00;
+            gData[1] = 0x00;
+            gData[2] = 0xFF;
+            gData[3] = 0x00;
+            gData[4] = 0x00;
+            gData[5] = 0x00;
+            gData[6] = 0xFF;
+            gData[7] = 0x00;
+
+            bData[0] = 0x00;
+            bData[1] = 0xFF;
+            bData[2] = 0x00;
+            bData[3] = 0xE7;
+            bData[4] = 0x00;
+            bData[5] = 0xFF;
+            bData[6] = 0x00;
+            bData[7] = 0xE7;
+            break;
+    }
+
+    list[0] = rData
+    list[1] = gData
+    list[2] = bData
+    return list;
+}
+
+export const getEffectsData = (effectName) => {
+    let effectData = [];
+    switch (effectName) {
+        case DIM_SLOW_MUSIC:
+            effectData[0] = 0x01;
+            effectData[1] = 0x00;
+            effectData[2] = 0x05;
+            effectData[3] = 0x99;
+            break;
+        case DIM_ROMANCE:
+            effectData[0] = 0x01;
+            effectData[1] = 0x00;
+            effectData[2] = 0x02;
+            effectData[3] = 0x10;
+            break;
+        case NO_EFFECTS:
+            effectData[0] = 0x00;
+            effectData[1] = 0x00;
+            effectData[2] = 0x00;
+            effectData[3] = 0x1E;
+            break;
+
+        case POLICE:
+            effectData[0] = 0x01;
+            effectData[1] = 0x00;
+            effectData[2] = 0x02;
+            effectData[3] = 0x03;
+            break;
+
+        case FIRE_CRACKER:
+            effectData[0] = 0x01;
+            effectData[1] = 0x00;
+            effectData[2] = 0x03;
+            effectData[3] = 0x02;
+            break;
+
+        case ALIENS:
+            effectData[0] = 0x01;
+            effectData[1] = 0x00;
+            effectData[2] = 0x02;
+            effectData[3] = 0x05;
+            break;
+
+        case FANTASY:
+            effectData[0] = 0x01;
+            effectData[1] = 0x00;
+            effectData[2] = 0x02;
+            effectData[3] = 0x10;
+            break;
+
+        case MAGIC:
+            effectData[0] = 0x01;
+            effectData[1] = 0x00;
+            effectData[2] = 0x02;
+            effectData[3] = 0x10;
+            break;
+
+        case LETS_DANCE:
+            effectData[0] = 0x01;
+            effectData[1] = 0x00;
+            effectData[2] = 0x03;
+            effectData[3] = 0x03;
+            break;
+    }
+    return effectData;
+}
