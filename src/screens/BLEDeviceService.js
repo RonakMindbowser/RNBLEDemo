@@ -14,11 +14,15 @@ import {
     TouchableOpacity,
     Switch,
     ToastAndroid,
+    Modal,
 } from 'react-native';
 
 import BleManager from "react-native-ble-manager";
 import { ColorPicker, toHsv, fromHsv, } from 'react-native-color-picker';
-import { getEffectRGBData, getEffectsData, hexToRgb, NO_EFFECTS, } from '../Utils/Utils';
+import {
+    BEAUTIFUL, BRIGHT, getEffectRGBData, getEffectsData, getSystemTime,
+    getTimerBytes, hexToRgb, MOONLIGHT, NO_EFFECTS, OLD_RGBW_TYPE, POWER_SWITCH, READING, WARM,
+} from '../Utils/Utils';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
@@ -26,6 +30,7 @@ const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 import { CustomHeader, } from "react-native-reusable-custom-components";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colorAndShadeList1 } from './ColorList';
+import DatePicker from 'react-native-date-picker'
 
 /**
  * BLE Device Service Class
@@ -48,6 +53,43 @@ const BLEDeviceService = (props) => {
 
     const [isEffectRunning, setEffectRunning] = useState(false);
 
+    const [isTurnOnEnabled, setIsTurnOnEnabled] = useState(false)
+    const [isTurnOffEnabled, setIsTurnOffEnabled] = useState(false)
+    const [modalVisible, setModalVisible] = useState(false);
+    const [date, setDate] = useState(new Date(new Date().getTime() + 2 * 60000))
+
+    const [turnOnDate, setTurnOnDate] = useState(date)
+    const [turnOffDate, setTurnOffDate] = useState(date)
+    const [alarmIndex, setAlarmIndex] = useState(0)
+    const [selectedMode, setMode] = useState(0);
+    const [selectedModeValue, setModeValue] = useState("BRIGHT");
+
+    const [modeList1, setList1] = useState([{
+        id: BRIGHT,
+        value: "BRIGHT"
+    },
+    {
+        id: MOONLIGHT,
+        value: "MOONLIGHT"
+    },
+    {
+        id: READING,
+        value: "READING"
+    }])
+
+    const [modeList2, setList2] = useState([{
+        id: OLD_RGBW_TYPE,
+        value: "OLD_RGBW_TYPE"
+    },
+    {
+        id: WARM,
+        value: "WARM"
+    },
+    {
+        id: BEAUTIFUL,
+        value: "BEAUTIFUL"
+    }])
+
     const serviceUUIDForWriteBlubColor = "ffb0"
     const characteristicUUIDForWriteBlubColor = "ffb2"
 
@@ -55,6 +97,8 @@ const BLEDeviceService = (props) => {
     const LED_RW_G_ARRAY_CHARACTERISTIC_UUID = "ffba";
     const LED_RW_B_ARRAY_CHARACTERISTIC_UUID = "ffbb";
     const LED_RW_CHANGE_MODE_CHARACTERISTIC_UUID = "ffb1";
+    const LED_RW_TIMING_CHARACTERISTIC_UUID = "ffbf";
+    const LED_RW_SYSTEM_TIME_CHARACTERISTIC_UUID = "ffb3";
 
     const characteristicUUIDForChangeBlubName = "ffb7"
     const fullBrightNessHexValue = 49; // 1
@@ -70,12 +114,11 @@ const BLEDeviceService = (props) => {
         getAllServiceForBLEDevice()
 
 
+
         return (() => {
             ble3.remove()
             ble4.remove()
         })
-
-
 
     }, []);
 
@@ -208,14 +251,7 @@ const BLEDeviceService = (props) => {
     const renderColorItem = ({ item, index }) => {
         let isRomanceEffect = colorAndShadeList[currentIndex]?.isRomanceEffect ? true : false;
         return (
-            <TouchableOpacity style={{
-                borderWidth: 0.5,
-                flexDirection: "row",
-                paddingVertical: 10,
-                paddingHorizontal: 10,
-                alignItems: "center",
-                marginVertical: 5
-            }}
+            <TouchableOpacity style={styles.colorItemView}
                 onPress={() => {
                     if (isRomanceEffect) {
                         onRomanceEffectClick(item)
@@ -225,14 +261,12 @@ const BLEDeviceService = (props) => {
                     }
                 }}
             >
-                <View style={{
-                    backgroundColor: item.backgroundColor,
-                    height: 30, width: 30,
-                    borderRadius: 30 * 2,
-                    borderWidth: 2,
-                    elevation: 5,
-                    marginHorizontal: 10
-                }} />
+                <View style=
+                    {{
+                        backgroundColor: item.backgroundColor,
+                        ...styles.itemColorView
+                    }}
+                />
                 <Text style={styles.colorName}>{item.name}</Text>
             </TouchableOpacity>
         )
@@ -382,58 +416,10 @@ const BLEDeviceService = (props) => {
         }
         setEnabled(value)
     }
-    // 48-0
-    // 49-1
-    // 50-2
-    // 51-3
-    // 52-4
-    // 53-5
-    // 54-6
-    // 55-7
-    // effectData[0] = (byte) 0x01;
-    // effectData[1] = (byte) 0x00;
-    // effectData[2] = (byte) 0x02;
-    // effectData[3] = (byte) 0x03;
-    //[B@7092c97
-
-    // case Constants.NO_EFFECTS:
-    //     effectData[0] = (byte) 0x00;
-    //     effectData[1] = (byte) 0x00;
-    //     effectData[2] = (byte) 0x00;
-    //     effectData[3] = (byte) 0x1E;
-
-    //     2022-06-18 17:47:13.506 19377-20588/? I/Util: getEffectsData effectName: No Effects
-    // 2022-06-18 17:47:13.506 19377-20588/? I/MansaaBulbDevice: effectName: No Effects, setByteEffect: [B@8b48dc5
-    // 2022-06-18 17:47:14.336 19377-20588/? I/MansaaBulbDevice: effectName: Cobalt, setByteEffect: [B@3895c6c
 
     const getValue = (list = []) => {
         let newlist = list.map(obj => parseInt(obj, 16));
         return newlist
-    }
-
-    const onPressStrobe = () => {
-        let item = route.params && route.params.peripheral ? route.params.peripheral : null;
-        console.log("Item ---->", item);
-        console.log("getValue ---->", getValue(['0x01', '0x00', '0x02', ' 0x10']));
-
-        let yourNumber = parseInt('0x11', 16);
-        console.log("yourNumber===>", yourNumber);
-
-        try {
-            BleManager.write(item.id,
-                serviceUUIDForWriteBlubColor,
-                'ffb1',
-                getValue([1, 0, 3, 2]),//[49, 48, 50, 51]	// [48, 0, 0, 0]	//	tempBuffer
-            ).then((response) => {
-                console.log("response---strobe>", response);
-
-            }).catch(error => {
-                console.log("Error--->", error);
-                ToastAndroid.show(JSON.stringify(error), ToastAndroid.SHORT)
-            })
-        } catch (error) {
-            console.log("Error---123123123-<", error);
-        }
     }
 
     const onRomanceEffectClick = (data) => {
@@ -483,11 +469,9 @@ const BLEDeviceService = (props) => {
                                         }).catch((error) => {
                                             console.log("Error---1234-<", error);
                                         })
-
                                 }).catch((error) => {
                                     console.log("Error---58585-<", error);
                                 })
-
                         }).catch((error) => {
                             console.log("Error---4848-<", error);
                         })
@@ -496,6 +480,108 @@ const BLEDeviceService = (props) => {
                 console.log("Error---no effect-<", error);
             })
         }
+    }
+
+    const handleAlarmTurnOnValue = (value) => {
+        // setIsTurnOnEnabled(value)
+        setModalVisible(true)
+        setAlarmIndex(0)
+    }
+
+    const handleAlarmTurnOffValue = (value) => {
+        // setIsTurnOffEnabled(value)
+        setModalVisible(true)
+        setAlarmIndex(1)
+    }
+
+    const performTurnOnOffOperation = () => {
+        setModalVisible(false)
+        if (alarmIndex == 0) setIsTurnOnEnabled(true)
+        else setIsTurnOffEnabled(true)
+
+        let hour1 = turnOnDate.getHours()
+        let minutes1 = turnOnDate.getMinutes()
+
+        let hour2 = turnOffDate.getHours();
+        let minutes2 = turnOffDate.getMinutes();
+
+        let mode = selectedMode;
+        let duration = 1;
+
+        let item = route.params && route.params.peripheral ? route.params.peripheral : null;
+
+        let byteTimer1 = getTimerBytes({ hour: hour1, minutes: minutes1, mode, duration, isOn: true })
+
+        let byteTimer2 = getTimerBytes({ hour: hour2, minutes: minutes2, mode: POWER_SWITCH, duration, isOn: alarmIndex == 1 })
+
+        console.log("byteTimer1 :: ", byteTimer1);
+        console.log("byteTimer2 :: ", byteTimer2);
+
+        let value = [];
+        value[0] = byteTimer1[0];
+        value[1] = byteTimer1[1];
+        value[2] = byteTimer1[2];
+        value[3] = byteTimer1[3];
+        value[4] = byteTimer1[4];
+        value[5] = byteTimer1[5];
+        value[6] = byteTimer1[6];
+        value[7] = byteTimer1[7];
+        value[8] = byteTimer1[8];
+        value[9] = byteTimer2[0];
+        value[10] = byteTimer2[1];
+        value[11] = byteTimer2[2];
+        value[12] = byteTimer2[3];
+        value[13] = byteTimer2[4];
+        value[14] = byteTimer2[5];
+        value[15] = byteTimer2[6];
+        value[16] = byteTimer2[7];
+        value[17] = byteTimer2[8];
+        console.log("Final Value :: ", value);
+
+        let systemTime = getSystemTime();
+        console.log("Final systemTime :: ", systemTime);
+
+        BleManager.write(
+            item.id,
+            serviceUUIDForWriteBlubColor,
+            LED_RW_SYSTEM_TIME_CHARACTERISTIC_UUID,
+            systemTime,
+        ).then((res) => {
+            console.log("res LED_RW_SYSTEM_TIME_CHARACTERISTIC_UUID:: ", res);
+            setTimeout(() => {
+                BleManager.write(
+                    item.id,
+                    serviceUUIDForWriteBlubColor,
+                    LED_RW_TIMING_CHARACTERISTIC_UUID,
+                    value,
+                ).then((res) => {
+                    console.log("res LED_RW_TIMING_CHARACTERISTIC_UUID:: ", res);
+                }).catch((err) => {
+                    console.log("Erro LED_RW_TIMING_CHARACTERISTIC_UUID:: ", err);
+                })
+            }, 1000);
+        }).catch((err) => {
+            console.log("Erro LED_RW_SYSTEM_TIME_CHARACTERISTIC_UUID:: ", err);
+        })
+    }
+
+    const renderModeView = (obj) => {
+        return (
+            <TouchableOpacity style={styles.listObjView}
+                onPress={() => {
+                    setMode(obj.id)
+                    setModeValue(obj.value)
+                }}
+            >
+                <View style={styles.radioView}>
+                    {
+                        selectedMode == obj.id
+                            ? <View style={styles.radioSelected} /> : null
+                    }
+                </View>
+                <Text style={styles.objValue}>{obj.value}</Text>
+            </TouchableOpacity>
+        )
     }
 
     return (
@@ -510,21 +596,16 @@ const BLEDeviceService = (props) => {
                 horizontal
                 contentContainerStyle={{ paddingTop: 20, }}
             >
-                {/* {
-                    <TouchableOpacity onPress={onPressStrobe}>
-                        <Text style={{ color: "black" }}>{"Strobe Effect"}</Text>
-                    </TouchableOpacity>
-                } */}
                 {colorAndShadeList.map((item, index) => renderColorTitleItem(item, index))}
             </ScrollView>
 
-            {currentIndex != 0 ? <FlatList
+            {currentIndex != 0 && currentIndex != colorAndShadeList.length - 1 ? <FlatList
                 data={colorAndShadeList[currentIndex].colorList}
                 extraData={randomNumber}
                 renderItem={renderColorItem}
-                contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 10, }}
-            /> :
-                <View style={{ height: "70%", marginBottom: 30 }}>
+                contentContainerStyle={styles.contentContainerStyle}
+            /> : currentIndex == 0 ?
+                <View style={styles.colorPickerView}>
                     <ColorPicker
                         onColorSelected={color => {
                             onColorPicked(color)
@@ -550,13 +631,48 @@ const BLEDeviceService = (props) => {
                         <Text style={styles.title}>{"Select"}</Text>
                     </TouchableOpacity>
                 </View>
+                :
+                (
+                    <View style={{ height: "70%", }}>
+                        <View style={styles.switchView}>
+                            <TouchableOpacity
+                                style={[styles.titleView, { width: '75%', }]}
+                                onPress={() => handleAlarmTurnOnValue()}
+                            >
+                                <Text style={styles.title}>{"Set alarm to turn on the lights"}</Text>
+                            </TouchableOpacity>
+                            <Switch
+                                trackColor={{ false: "#767577", true: "#81b0ff" }}
+                                ios_backgroundColor="#3e3e3e"
+                                thumbColor={isTurnOnEnabled ? "#f5dd4b" : "#f4f3f4"}
+                                onValueChange={(value) => handleAlarmTurnOnValue(value)}
+                                value={isTurnOnEnabled}
+                            />
+                        </View>
+                        <Text style={styles.turnOnDate}>{"Turn On Light time::" + turnOnDate.toString()}</Text>
+                        <Text style={styles.turnOnDate}>{"Selected Mode:: " + selectedModeValue}</Text>
+
+                        <View style={styles.switchView}>
+                            <TouchableOpacity
+                                style={[styles.titleView, { width: '75%', }]}
+                                onPress={() => handleAlarmTurnOffValue()}
+                            >
+                                <Text style={styles.title}>{"Set alarm to turn on the lights"}</Text>
+                            </TouchableOpacity>
+                            <Switch
+                                trackColor={{ false: "#767577", true: "#81b0ff" }}
+                                ios_backgroundColor="#3e3e3e"
+                                thumbColor={isTurnOffEnabled ? "#f5dd4b" : "#f4f3f4"}
+                                onValueChange={(value) => handleAlarmTurnOffValue(value)}
+                                value={isTurnOffEnabled}
+                            />
+                        </View>
+                        <Text style={styles.turnOnDate}>{"Turn Off Light time::" + turnOffDate.toString()}</Text>
+                    </View>
+                )
             }
 
-            <View style={{
-                position: "absolute",
-                right: 0,
-                top: 20
-            }}>
+            <View style={styles.bulbTurnSwithchView}>
                 <Switch
                     trackColor={{ false: "#767577", true: "#81b0ff" }}
                     thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
@@ -564,6 +680,51 @@ const BLEDeviceService = (props) => {
                     onValueChange={(value) => handleBlubToggleValue(value)}
                     value={isEnabled}
                 />
+            </View>
+            <View>
+                <Modal
+                    visible={modalVisible}
+                    animationType="fade"
+                    transparent={true}
+                    onRequestClose={() => setModalVisible(false)}
+                    style={styles.modalStyle}
+                >
+                    <View style={styles.mainContainer}>
+                        <TouchableOpacity
+                            onPress={() => setModalVisible(false)}
+                            style={styles.transparentArea}
+                        />
+                        <View style={styles.subContainer}>
+                            <DatePicker
+                                date={alarmIndex == 0 ? turnOnDate : turnOffDate}
+                                onDateChange={(dt) => {
+                                    if (alarmIndex == 0) setTurnOnDate(dt)
+                                    else setTurnOffDate(dt)
+                                }}
+                                minimumDate={new Date()}
+                                is24hourSource="locale"
+                                mode='datetime'
+                            />
+                            {alarmIndex == 0 ? <View>
+                                <View style={styles.listWrapView}>
+                                    {modeList1.map((obj) => { return renderModeView(obj) })}
+                                </View>
+                                <View style={styles.listWrapView}>
+                                    {modeList2.map((obj) => { return renderModeView(obj) })}
+                                </View>
+                            </View> : null}
+                            <TouchableOpacity style={styles.titleView}
+                                onPress={performTurnOnOffOperation}
+                            >
+                                <Text style={styles.title}>{"Select"}</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => setModalVisible(false)}
+                            style={styles.transparentArea}
+                        />
+                    </View>
+                </Modal>
             </View>
         </View>
     )
@@ -592,5 +753,85 @@ const styles = StyleSheet.create({
     },
     colorName: {
         color: "black",
+    },
+    modalStyle: {
+        flex: 1,
+        justifyContent: 'flex-end',
+    },
+    mainContainer: {
+        flex: 1,
+        backgroundColor: '#26323870',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    transparentArea: {
+        flex: 1,
+        width: '100%',
+    },
+    subContainer: {
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        justifyContent: 'space-around',
+    },
+    listWrapView: {
+        flexDirection: "row",
+        paddingVertical: 10
+    },
+    listObjView: {
+        flexDirection: "row",
+        margin: 10,
+        alignItems: "center"
+    },
+    radioView: {
+        height: 15, width: 15,
+        borderWidth: 2, borderColor: "black",
+        borderRadius: 30, alignItems: "center",
+        justifyContent: "center"
+    },
+    radioSelected: {
+        height: 8, width: 8,
+        backgroundColor: "black", borderRadius: 20,
+    },
+    objValue: {
+        color: "black",
+        textTransform: "lowercase", marginLeft: 5
+    },
+    contentContainerStyle: {
+        flexGrow: 1,
+        paddingHorizontal: 10,
+    },
+    colorPickerView: {
+        height: "70%",
+        marginBottom: 30
+    },
+    turnOnDate: {
+        color: "black",
+        padding: 15
+    },
+    switchView: {
+        flexDirection: "row",
+        marginTop: 20
+    },
+    bulbTurnSwithchView: {
+        position: "absolute",
+        right: 0,
+        top: 20
+    },
+    colorItemView: {
+        borderWidth: 0.5,
+        flexDirection: "row",
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        alignItems: "center",
+        marginVertical: 5
+    },
+    itemColorView: {
+        height: 30, width: 30,
+        borderRadius: 30 * 2,
+        borderWidth: 2,
+        elevation: 5,
+        marginHorizontal: 10
     }
 })

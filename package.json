@@ -20,6 +20,7 @@
     "react-native": "0.68.2",
     "react-native-ble-manager": "^8.1.0",
     "react-native-color-picker": "^0.6.0",
+    "react-native-date-picker": "^4.2.2",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.4.2",
     "react-native-reanimated": "2.2.4",

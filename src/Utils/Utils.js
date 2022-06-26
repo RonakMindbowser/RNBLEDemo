@@ -107,17 +107,6 @@ const pinkColorList = [
     },
 ]
 
-// export function hslToHex(h, s, l) {
-//     l /= 100;
-//     const a = s * Math.min(l, 1 - l) / 100;
-//     const f = n => {
-//         const k = (n + h / 30) % 12;
-//         const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-//         return Math.round(255 * color).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
-//     };
-//     return `#${f(0)}${f(8)}${f(4)}`;
-// }
-
 export function hslToHex(h, s, l) {
     h /= 360;
     s /= 100;
@@ -199,6 +188,16 @@ export const ALIENS = "Alien";
 export const MAGIC = "Magic";
 export const FANTASY = "Fantasy";
 export const LETS_DANCE = "Let's Dance";
+
+export const BRIGHT = 0;
+export const MOONLIGHT = 1;
+export const READING = 2;
+export const OLD_RGBW_TYPE = 3;
+export const WARM = 4;
+export const BEAUTIFUL = 5;
+export const POWER_SWITCH = 6;
+
+export const INVALID_POINTER_ID = 255;
 
 export const getEffectRGBData = (effectName) => {
     let list = [];
@@ -512,4 +511,90 @@ export const getEffectsData = (effectName) => {
             break;
     }
     return effectData;
+}
+
+
+
+export const getTimerBytes = ({
+    timer,
+    mode = 0,
+    duration = 1,
+    hour,
+    minutes,
+    isOn
+}) => {
+    let value = [];
+    let red = 0;
+    let blue = 0;
+    let green = 0;
+
+    value[0] = (isOn ? 1 : 0);
+    value[1] = (hour & INVALID_POINTER_ID);
+    value[2] = (minutes & INVALID_POINTER_ID);
+
+    // red = mode != 6 ? 255 : 0;
+    // blue = mode != 6 ? 255 : 0;
+    // green = mode != 6 ? 255 : 0;
+    switch (mode) {
+        case BRIGHT:
+            red = parseInt("ff", 16);
+            green = parseInt("ff", 16);
+            blue = parseInt("ff", 16);
+            break;
+        case MOONLIGHT:
+            red = parseInt("16", 16);
+            green = parseInt("27", 16);
+            blue = parseInt("5f", 16);
+            break;
+        case READING:
+            red = parseInt("e9", 16);
+            green = parseInt("bb", 16);
+            blue = parseInt("16", 16);
+            break;
+        case OLD_RGBW_TYPE:
+            red = parseInt("12", 16);
+            green = parseInt("b7", 16);
+            blue = parseInt("a2", 16);
+            break;
+        case WARM:
+            red = parseInt("e7", 16);
+            green = parseInt("53", 16);
+            blue = parseInt("12", 16);
+            break;
+        case BEAUTIFUL:
+            red = parseInt("c8", 16);
+            green = parseInt("24", 16);
+            blue = parseInt("52", 16);
+            break;
+        case POWER_SWITCH:
+            red = parseInt("0", 16);
+            green = parseInt("0", 16);
+            blue = parseInt("0", 16);
+            break;
+    }
+
+    value[3] = (mode & INVALID_POINTER_ID);
+    value[4] = (red & INVALID_POINTER_ID);
+    value[5] = (green & INVALID_POINTER_ID);
+    value[6] = (blue & INVALID_POINTER_ID);
+    value[7] = (duration & INVALID_POINTER_ID);
+    value[8] = ((duration >> 8) & INVALID_POINTER_ID);
+
+    console.log("value :: ", value);
+    return value;
+
+}
+
+export const getSystemTime = () => {
+    let cal = [];
+    let date = new Date()
+    cal[0] = (date.getFullYear() & 0xff);
+    cal[1] = (date.getFullYear() >> 8 & 0xff);
+    cal[2] = ((date.getMonth() + 1) & 0xff);
+    cal[3] = (date.getDay() & 0xff);
+    cal[4] = (date.getHours() & 0xff);
+    cal[5] = (date.getMinutes() & 0xff);
+    cal[6] = (date.getSeconds() & 0xff);
+    console.log("Final cal :: ", cal);
+    return cal;
 }

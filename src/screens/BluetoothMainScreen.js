@@ -85,8 +85,8 @@ const BletoothMainScreen = (props) => {
 
         /**
          *//* Listener to handle the opeation when device is connected , disconnected Handle stop scan
-    , when any value will update from BLE device
-    */
+, when any value will update from BLE device
+*/
         const ble1 = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', handleDiscoverPeripheral);
         const ble2 = bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan);
         const ble3 = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral);
@@ -243,7 +243,7 @@ const BletoothMainScreen = (props) => {
                     isScanning ?
                         <Text style={styles.scanningText}>{"Scanning for Smart Blub..."}</Text>
                         :
-                        <View style={{}}>
+                        <View>
                             <Text style={styles.noBlubText}>{"No Smart Blub Found."}</Text>
                             <Text style={styles.pleaseMakeText}>{"Please make sure smart blubs are powered on."}</Text>
 
@@ -265,23 +265,18 @@ const BletoothMainScreen = (props) => {
         let isDevice = item.id == "8C:8B:83:47:0F:BC" ? true : false
         return (
             <TouchableOpacity style={{
-                marginHorizontal: 20, flexDirection: "row",
-                alignItems: "center", marginVertical: 10,
-                justifyContent: "space-between",
-                borderBottomWidth: 1,
-                borderColor: "gray",
-                paddingBottom: 5,
+                ...styles.bulbWrapView,
                 backgroundColor: isDevice ? "gray" : "white"
             }}
                 onPress={() => onPressSingleBlub(item, index)}
             >
-                <View style={{ flexDirection: "row", alignItems: "center", }}>
-                    <Image source={images.smartBlubIcon} style={{ height: 30, width: 30 }} />
-                    <Text style={{ color: "black", marginLeft: 20 }}>{"Smart Bulb " + (index + 1)}</Text>
+                <View style={styles.bulbView}>
+                    <Image source={images.smartBlubIcon} style={styles.smartBlubIcon} />
+                    <Text style={styles.bulbText}>{"Smart Bulb " + (index + 1)}</Text>
                 </View>
                 {
                     item.isConnecting ?
-                        <View style={{ position: "absolute", right: "30%" }}>
+                        <View style={styles.activityindicator}>
                             <ActivityIndicator />
                         </View>
                         : null
@@ -292,8 +287,8 @@ const BletoothMainScreen = (props) => {
                             setRenameModalVisible(true)
                             setSelectedPeripheral(item)
                         }}
-                        style={{ backgroundColor: "blue", padding: 5 }}>
-                        <Text style={{ fontSize: 14, color: "white" }}>{"Rename"}</Text>
+                        style={styles.ranameView}>
+                        <Text style={styles.renameText}>{"Rename"}</Text>
                     </TouchableOpacity>
                 }
             </TouchableOpacity>
@@ -440,7 +435,7 @@ const BletoothMainScreen = (props) => {
 
     console.log("list ------>", list);
     return (
-        <View style={{ flex: 1, backgroundColor: "white" }}>
+        <View style={styles.container}>
             <CustomHeader
                 backButton
                 middleText='Bluetooth Low Energy'
@@ -453,14 +448,14 @@ const BletoothMainScreen = (props) => {
                         onRefresh={() => onRefresh()}
                     />
                 }
-                contentContainerStyle={{ flexGrow: 1 }}
+                contentContainerStyle={styles.contentContainerStyle}
             >
 
                 <FlatList
                     data={list}
                     keyExtractor={item => item.id}
                     extraData={randomNumber}
-                    contentContainerStyle={{ flexGrow: 1, backgroundColor: "white" }}
+                    contentContainerStyle={styles.contentContainerStyle}
                     ListEmptyComponent={renderListEmptyComponent}
                     renderItem={renderBlubList}
                 />
@@ -470,27 +465,23 @@ const BletoothMainScreen = (props) => {
                     <CustomLoader loading={isScanning} />
                     : null
             }
-            <View style={{ position: "absolute", bottom: 10, flexDirection: "row", justifyContent: "space-between" }}>
-                <TouchableOpacity style={{ alignItems: "center", width: "50%" }} onPress={startScan}>
+            <View style={styles.scamWrapView}>
+                <TouchableOpacity style={styles.startScanView} onPress={startScan}>
                     <Image
                         source={images.refreshIcon}
-                        style={{ height: 30, width: 30, }}
+                        style={styles.refreshIcon}
                     />
-                    <Text style={{
-                        fontSize: 16, fontWeight: "700", color: "black"
-                    }}>{"Refresh"}</Text>
+                    <Text style={styles.refreshText}>{"Refresh"}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     onPress={() => toggleHelpModal(true)}
-                    style={{ alignItems: "center", width: "50%" }}>
+                    style={styles.startScanView} >
                     <Image
                         source={images.helpIcon}
-                        style={{ height: 30, width: 30, }}
+                        style={styles.refreshIcon}
                     />
-                    <Text style={{
-                        fontSize: 16, fontWeight: "700", color: "black"
-                    }}>{"Help"}</Text>
+                    <Text style={styles.refreshText}>{"Help"}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -543,12 +534,7 @@ const BletoothMainScreen = (props) => {
                                         placeholder='Enter Name'
                                         maxLength={19}
                                         placeholderTextColor={"gray"}
-                                        style={{
-                                            borderWidth: 1,
-                                            // flex: 1,
-                                            color: "black", margin: 10,
-                                            height: 50
-                                        }}
+                                        style={styles.renameTextInput}
                                     />
                                     <TouchableOpacity style={styles.button}
                                         onPress={onPressRenameDevice}
@@ -670,6 +656,66 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         alignItems: "center",
         justifyContent: "center"
+    },
+    bulbWrapView: {
+        marginHorizontal: 20, flexDirection: "row",
+        alignItems: "center", marginVertical: 10,
+        justifyContent: "space-between",
+        borderBottomWidth: 1,
+        borderColor: "gray",
+        paddingBottom: 5,
+    },
+    smartBlubIcon: {
+        height: 30,
+        width: 30
+    },
+    bulbText: {
+        color: "black",
+        marginLeft: 20
+    },
+    activityindicator: {
+        position: "absolute",
+        right: "30%"
+    },
+    ranameView: {
+        backgroundColor: "blue",
+        padding: 5
+    },
+    renameText: {
+        fontSize: 14,
+        color: "white"
+    },
+    container: {
+        flex: 1,
+        backgroundColor: "white"
+    },
+    contentContainerStyle: {
+        flexGrow: 1,
+        backgroundColor: "white"
+    },
+    scamWrapView: {
+        position: "absolute", bottom: 10,
+        flexDirection: "row", justifyContent: "space-between",
+    },
+    startScanView: {
+        alignItems: "center",
+        width: "50%"
+    },
+    refreshIcon: {
+        height: 30,
+        width: 30,
+    },
+    refreshText: {
+        fontSize: 16, fontWeight: "700", color: "black"
+    },
+    renameTextInput: {
+        borderWidth: 1,
+        color: "black", margin: 10,
+        height: 50
+    },
+    bulbView: {
+        flexDirection: "row",
+        alignItems: "center",
     }
 });
 
